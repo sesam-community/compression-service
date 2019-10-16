@@ -31,7 +31,7 @@ def get_gzip(path):
         if data.status_code == 200:
             data.raw.decode_content = True  # just in case transport encoding was applied
             yield gzip.decompress(data.content)
-        else
+        else:
             return Response(response="Error occured on remote source.",status=403)
 
     full_url = SERVICE_URL + urllib.parse.unquote(path)
