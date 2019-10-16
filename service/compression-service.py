@@ -30,7 +30,8 @@ def get_gzip(path):
 
         if data.status_code == 200:
             data.raw.decode_content = True  # just in case transport encoding was applied
-        return gzip.GzipFile(fileobj=data.raw)
+            yield gzip.decompress(data.content)
+        #return gzip.GzipFile(fileobj=data.raw)
 
     full_url = SERVICE_URL + urllib.parse.unquote(path)
     return Response(get_file(full_url), mimetype='application/json')
