@@ -5,8 +5,9 @@ import json
 import logging
 import paste.translogger
 import requests
-import gzip
-import urllib.parse
+import zlib
+
+d = zlib.decompressobj(16+zlib.MAX_WBITS)
 
 app = Flask(__name__)
 
@@ -22,20 +23,17 @@ def root():
 @app.route('/gzip/<path>', methods=['GET'])
 def get_gzip(path):
 
-    def get_file(url):
-        headers = {
-            'Content-Type': 'application/json'
-            }
-        data = requests.get(url, headers=headers, stream=True)
+    full_url = SERVICE_URL + path
+    
+    def deco_file(url):
+      with requests.get(url, stream=True) as r:
 
-        if data.status_code == 200:
-            data.raw.decode_content = True  # just in case transport encoding was applied
-            yield gzip.decompress(data.content)
-        else:
-            return Response(response="Error occured on remote source.",status=403)
+        for chunk in r.iter_content(chunk_size=1048576):
+            if chunk:
+                yield d.decompress(chunk)
 
-    full_url = SERVICE_URL + urllib.parse.unquote(path)
-    return Response(get_file(full_url), mimetype='application/json')
+
+    return Response(deco_file(full_url), mimetype='application/json', direct_passthrough=True)
 
 
 if __name__ == '__main__':
