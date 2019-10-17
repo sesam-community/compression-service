@@ -28,9 +28,10 @@ def get_gzip(path):
     def deco_file(url):
       with requests.get(url, stream=True) as r:
 
-        for chunk in r.iter_content(chunk_size=1048576):
+        for chunk in r.iter_content(chunk_size=1048576, decode_unicode=False):
             if chunk:
                 yield d.decompress(chunk)
+                #yield chunk
 
 
     return Response(deco_file(full_url), mimetype='application/json', direct_passthrough=True)
