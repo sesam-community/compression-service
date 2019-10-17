@@ -13,27 +13,21 @@ app = Flask(__name__)
 
 logger = logging.getLogger("compression-service")
 
-# settings dependent on environment variables
-SERVICE_URL = os.environ.get("SERVICE_URL", "")
-
 @app.route('/', methods=['GET'])
 def root():
     return Response(status=200, response="Working.")
 
-@app.route('/gzip/<path>', methods=['GET'])
-def get_gzip(path):
+@app.route('/gzip', methods=['GET'])
+def get_gzip():
+    full_url = request.args.get('url', None) # use default value repalce 'None'
 
-    full_url = SERVICE_URL + path
-    
     def deco_file(url):
       with requests.get(url, stream=True) as r:
 
         for chunk in r.iter_content(chunk_size=1048576, decode_unicode=False):
             if chunk:
                 yield d.decompress(chunk)
-                #yield chunk
-
-
+ 
     return Response(deco_file(full_url), mimetype='application/json', direct_passthrough=True)
 
 
