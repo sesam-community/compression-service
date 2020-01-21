@@ -7,7 +7,7 @@ import paste.translogger
 import requests
 import zlib
 
-d = zlib.decompressobj(16+zlib.MAX_WBITS)
+
 
 app = Flask(__name__)
 
@@ -22,12 +22,13 @@ def get_gzip():
     full_url = request.args.get('url', None) # use default value repalce 'None'
 
     def deco_file(url):
+      d = zlib.decompressobj(16+zlib.MAX_WBITS)
       with requests.get(url, stream=True) as r:
 
         for chunk in r.iter_content(chunk_size=1048576, decode_unicode=False):
             if chunk:
                 yield d.decompress(chunk)
- 
+
     return Response(deco_file(full_url), mimetype='application/json', direct_passthrough=True)
 
 
@@ -61,5 +62,3 @@ if __name__ == '__main__':
     # Start the CherryPy WSGI web server
     cherrypy.engine.start()
     cherrypy.engine.block()
-
-
