@@ -1,29 +1,54 @@
-# Introduction 
-Use this package if your http url endpoint contains or provides file(s) that need to be uncompressed.
+# Compression microservice
 
-# Getting Started
+Use this microservice to retrieve compressed files from a url.
+Currently support the following:
+* gzip
 
-Example microservice config:
+Example system config:
 ---------------------------
-```
+```json
 {
   "_id": "compression-service",
+  "type": "system:microservice",
   "connect_timeout": 60,
   "docker": {
-    "environment": {
-      "LOG_LEVEL": "DEBUG",
-      "SESAM-API": "https://datahub-xxxxxxxx.sesam.cloud/api/",
-      "SESAM-JWT": "$SECRET(own-jwt)"
-    },
-    "image": "<docker repo>",
-    "memory": 128,
-    "password": "<password>",
-    "port": 5001,
-    "username": "<username>"
+    "image": "sesamcommunity",
+    "port": 5000,
   },
-  "read_timeout": 7200,
-  "type": "system:microservice",
-  "use_https": false,
-  "verify_ssl": true
+  "read_timeout": 1800
 }
+```
+
+Example pipe config:
+--------------------
+```json
+{
+  "_id": "example-filestuff",
+  "type": "pipe",
+  "source": {
+    "type": "json",
+    "system": "compression-service",
+    "url": "/gzip?url=https://example.com/myfile.gzip"
+  },
+  "transform": {
+    "type": "dtl",
+    "rules": {
+      "default": [
+        ["copy", "*"],
+        ["add", "_id", "_S.my_property"],
+        ["add", "rdf:type",
+          ["ni", "example:Something"]
+        ]
+      ]
+    }
+  }
+}
+```
+
+
+Available endpoints:
+--------------------
+Get gzip file:
+```
+/gzip?url=https://example.com/myfile.gzip
 ```
